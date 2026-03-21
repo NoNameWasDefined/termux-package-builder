@@ -1,0 +1,13 @@
+#!/system/bin/sh
+cat <<EOF
+Welcome to Termux Docker for %TERMUX_ARCH%!
+This image was modified for ease with package building
+Last image update: %BUILD_DATE%
+
+This image is primarily intended to be used by \`./scripts/run-docker.sh\`.
+If you want to begin with this image, run:
+\`env TERMUX_BUILDER_IMAGE_NAME=%IMAGE_NAME%:%TERMUX_ARCH% CONTAINER_HOME_DIR=${HOME} ./scripts/run-docker.sh\`
+Example to build Mesa and all of it's subpackages:
+\`env TERMUX_BUILDER_IMAGE_NAME=%IMAGE_NAME%:%TERMUX_ARCH% CONTAINER_HOME_DIR=${HOME} ./scripts/run-docker.sh ./build-package.sh -I mesa\`
+Please note that it cannot do cross-compiling and the flag \`-i\` cannot be used in favor of the \`-I\` flag!
+EOF
