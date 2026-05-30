@@ -8,7 +8,7 @@ Example quickstart:
 Clone termux-packages repo (preferably as UID 1000)
 	\`git clone https://github.com/termux/termux-packages.git\`
 Create a container with a custom name and mount the cloned repo and build output
-	\`docker run -it --name termux-package-builder -v \$PWD:termux-packages:$HOME/termux-packages -v \$PWD/termux-build:$HOME/.termux-build %TERMUX_BUILDER_IMAGE_NAME%:%TERMUX_ARCH\`
+	\`docker run -it --name termux-package-builder -v \$PWD:termux-packages:$HOME/termux-packages -v \$PWD/termux-build:$HOME/.termux-build %IMAGE_TAG%\`
 Inside the container try a build of Mesa with your modifications
 	\`cd termux-packages\`
 	\`./build-package.sh -I mesa\`
