@@ -12,4 +12,4 @@ RUN --mount=source=setup.sh,target=/setup.sh \
 
 RUN ["/system/bin/rm", "-r", "-f", "/source"]
     
-COPY motd.sh /data/data/com.termux/files/home/.termux/motd.sh
+COPY --chown=1000:1000 motd.sh /data/data/com.termux/files/home/.termux/motd.sh
