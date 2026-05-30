@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -28,6 +28,12 @@ amd64 | x86_64)
 esac
 TERMUX_DOCKER__ARCH="$_"
 
+# Detect if user is able to interact with Docker without sudo
+SUDO=""
+if [[ "$(uname)" = "Linux" ]] && (( "$(id -u)" != 0 )) && [[ "$(id -Gn)" != *" docker "* ]]; then
+	SUDO="sudo"
+fi
+
 cd "$(dirname "$0")/src"
 
 sed \
@@ -37,7 +43,7 @@ sed \
 	--expression="s/%IMAGE_NAME%/${TERMUX_DOCKER__PACKAGE_BUILDER_NAME//\//\\\/}/g" \
 'motd.sh.in' > 'motd.sh'
 
-docker buildx build \
+$SUDO docker buildx build \
 	--build-arg "TERMUX_DOCKER_TAG=${TERMUX_DOCKER__NAME}:${TERMUX_DOCKER__ARCH}" \
 	--platform "${TERMUX_DOCKER__BUILDER}" \
 	--tag "${TERMUX_DOCKER__PACKAGE_BUILDER_NAME}:${TERMUX_DOCKER__ARCH}" \
