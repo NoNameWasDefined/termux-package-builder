@@ -10,8 +10,8 @@ pkg upgrade --assume-yes --quiet --option=Dpkg::Options::=--force-confnew
 apt install --assume-yes --quiet gnupg jq
 
 ln --symbolic --relative --force \
-        "${PREFIX}/etc/termux/mirrors/europe/packages.termux.dev" \
-        "${PREFIX}/etc/termux/chosen_mirrors"
+	"${PREFIX}/etc/termux/mirrors/europe/packages.termux.dev" \
+	"${PREFIX}/etc/termux/chosen_mirrors"
 pkg --check-mirror upgrade
 
 cd '/source'
