@@ -1,14 +1,14 @@
 #!/system/bin/sh
 /system/bin/cat <<EOF
 Welcome to Termux Docker for %TERMUX_ARCH%!
-This image was modified for ease with package building
+This image was modified from %ORIGIN_IMAGE_TAG% for ease with package building
 Last image update: %BUILD_DATE%
 
 Example quickstart:
 Clone termux-packages repo (preferably as UID 1000)
 	\`git clone https://github.com/termux/termux-packages.git\`
 Create a container with a custom name and mount the cloned repo and build output
-	\`docker run -it --name termux-package-builder -v \$PWD:termux-packages:$HOME/termux-packages -v \$PWD/termux-build:$HOME/.termux-build %IMAGE_TAG%\`
+	\`docker run -it --name termux-package-builder -v \$PWD:termux-packages:$HOME/termux-packages -v \$PWD/termux-build:$HOME/.termux-build %ACTUAL_IMAGE_TAG%\`
 Inside the container try a build of Mesa with your modifications
 	\`cd termux-packages\`
 	\`./build-package.sh -I mesa\`
