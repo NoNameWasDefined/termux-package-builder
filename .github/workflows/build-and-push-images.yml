@@ -60,7 +60,7 @@ jobs:
       - name: Build and push single-platform image
         uses: docker/build-push-action@v7
         with:
-          context: "({defaultContext}):src"
+          context: "{{defaultContext}}:src"
           push: true
           platform: ${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
