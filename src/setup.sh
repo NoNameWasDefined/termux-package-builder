@@ -19,8 +19,8 @@ sed --in-place \
 	--expression="s/%BUILD_DATE%/$(
 		date --utc
 	)/g" \
-	--expression="s/%ORIGIN_IMAGE_TAG%/$1/g" \
-	--expression="s/%ACTUAL_IMAGE_TAG%/$1/g" \
+	--expression="s/%ORIGIN_IMAGE_NAME%/$1/g" \
+	--expression="s/%ACTUAL_IMAGE_NAME%/$2/g" \
 	"$HOME/.termux/motd.sh"
 
 if [ -z "$(find /source -mindepth 1 -print0 -quit)" ]; then
