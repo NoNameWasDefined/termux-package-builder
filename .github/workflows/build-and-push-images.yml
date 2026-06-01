@@ -29,6 +29,7 @@ jobs:
             platform: linux/arm64
             arch: aarch64
     runs-on: ${{ matrix.runner }}
+    name: Build single-platform image for ${{ matrix.arch }}
     permissions:
       contents: read
       packages: write
@@ -43,7 +44,7 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Generate metadata for single platform manifests
+      - name: Generate metadata for single-platform manifests
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -51,12 +52,12 @@ jobs:
           flavor: |
             suffix=-${{ matrix.arch }},onlatest=true
           tags: |
-            type=ref,event=pull_request
+            type=ref,event=pr
             type=ref,event=branch
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push single platform image
+      - name: Build and push single-platform image
         uses: docker/build-push-action@v7
         with:
           context: "({defaultContext}):src"
