@@ -1,0 +1,108 @@
+name: Build and Push Docker images
+
+on:
+  push:
+  pull_request:
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  DOCKER_USERNAME: ${{ github.actor }}
+  DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  IMAGE_NAME: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}
+
+jobs:
+  build-images:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+            arch: x86_64
+          - runner: ubuntu-latest
+            platform: linux/386
+            arch: i386
+          - runner: ubuntu-latest-arm
+            platform: linux/arm/v7
+            arch: arm
+          - runner: ubuntu-latest-arm
+            platform: linux/arm64
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Generate metadata for single platform manifests
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: |
+            suffix=-${{ matrix.arch }},onlatest=true
+          tags: |
+            type=ref,event=pull_request
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push single platform image
+        uses: docker/build-push-action@v7
+        with:
+          context: "({defaultContext}):src"
+          push: true
+          platform: ${{ matrix.platform }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            FINAL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+
+  create-manifest:
+    name: Create and push multi-platform manifests
+    runs-on: ubuntu-slim
+    needs: build-images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Generate metadata for multi-platform manifests
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pull_request
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create and push multi-platform manifests
+        run: |
+          IFS="," read -ra tags <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${tags[@]}"; do
+            docker manifest create \
+              "${tag}" \
+              "${{ env.IMAGE_NAME }}:${tag}-x86_64" \
+              "${{ env.IMAGE_NAME }}:${tag}-i386" \
+              "${{ env.IMAGE_NAME }}:${tag}-arm" \
+              "${{ env.IMAGE_NAME }}:${tag}-aarch64"
+            docker manifest push "${tag}"
+          done
