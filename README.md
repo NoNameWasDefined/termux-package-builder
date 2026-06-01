@@ -15,6 +15,6 @@ You can build the image using the Dockerfile, Podman is not tested yet.
 docker buildx build --tag ghcr.io/NoNameWasDefined/termux-package-builder src
 ```
 - To change the architecture you can use Docker's `--platform` flag to specify another target
-- To build against another image than "termux/termux-docker", specify the argument `ORIGIN_IMAGE_TAG` with the image tag
-- If you change the tag name you will have to specify the argument `TARGET_IMAGE_TAG` with the tag name else it will use "ghcr.io/NoNameWasDefined/termux-package-builder"
+- To build against another image than "termux/termux-docker", specify the argument `ORIGIN_IMAGE_NAME` with the image tag
+- If you change the tag name you will have to specify the argument `TARGET_IMAGE_NAME` with the tag name else it will use "ghcr.io/NoNameWasDefined/termux-package-builder"
 - APT cache is cached by BuildKit, using the flags `--cache-from` and `--cache-to` you can mount the cache in a locam directory to reuse the packages in a container
