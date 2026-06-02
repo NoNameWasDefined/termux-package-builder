@@ -62,7 +62,7 @@ jobs:
         with:
           context: "{{defaultContext}}:src"
           push: true
-          platform: ${{ matrix.platform }}
+          platforms: ${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
