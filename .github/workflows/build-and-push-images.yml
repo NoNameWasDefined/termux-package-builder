@@ -16,16 +16,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             platform: linux/amd64
             arch: x86_64
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             platform: linux/386
             arch: i386
-          - runner: ubuntu-latest-arm
+          - runner: ubuntu-24.04-arm
             platform: linux/arm/v7
             arch: arm
-          - runner: ubuntu-latest-arm
+          - runner: ubuntu-24.04-arm
             platform: linux/arm64
             arch: aarch64
     runs-on: ${{ matrix.runner }}
