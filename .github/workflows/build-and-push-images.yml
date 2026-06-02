@@ -96,13 +96,15 @@ jobs:
 
       - name: Create and push multi-platform manifests
         run: |
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          IMAGE_NAME="${IMAGE_NAME,,}"
           IFS="," read -ra tags <<< "${{ steps.meta.outputs.tags }}"
           for tag in "${tags[@]}"; do
             docker manifest create \
               "${tag}" \
-              "${{ env.IMAGE_NAME }}:${tag}-x86_64" \
-              "${{ env.IMAGE_NAME }}:${tag}-i386" \
-              "${{ env.IMAGE_NAME }}:${tag}-arm" \
-              "${{ env.IMAGE_NAME }}:${tag}-aarch64"
+              "${IMAGE_NAME}:${tag}-x86_64" \
+              "${IMAGE_NAME}:${tag}-i386" \
+              "${IMAGE_NAME}:${tag}-arm" \
+              "${IMAGE_NAME}:${tag}-aarch64"
             docker manifest push "${tag}"
           done
