@@ -63,6 +63,7 @@ jobs:
           context: "{{defaultContext}}:src"
           push: true
           platforms: ${{ matrix.platform }}
+          provenance: false # To allow usage with docker manifest create
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
