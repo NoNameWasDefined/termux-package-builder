@@ -72,7 +72,6 @@ jobs:
     name: Create and push multi-platform manifests
     runs-on: ubuntu-slim
     needs: build-images
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
