@@ -96,6 +96,7 @@ jobs:
 
       - name: Create and push multi-platform manifests
         run: |
+          set -x
           IMAGE_NAME="${{ env.IMAGE_NAME }}"
           IMAGE_NAME="${IMAGE_NAME,,}"
           IFS="," read -ra tags <<< "${{ steps.meta.outputs.tags }}"
