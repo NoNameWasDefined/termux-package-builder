@@ -4,6 +4,11 @@ on:
   pull_request:
   push:
   workflow_dispatch:
+    inputs:
+      base_image:
+        description: The Docker image on which the final image should be based on
+        default: termux/termux-packages
+        type: string
   repository_dispatch:
     event_types:
       - build_images
@@ -16,7 +21,7 @@ env:
 
 jobs:
   build-images:
-    name: Build single-platform image for ${{ matrix.arch }}
+    name: Build image for ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +53,7 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Generate metadata for single-platform manifests
+      - name: Generate metadata for ${{ matrix.arch }} manifests
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -61,7 +66,7 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push single-platform image
+      - name: Build and push ${{ matrix.arch }} image
         uses: docker/build-push-action@v7
         with:
           context: "{{defaultContext}}:src"
@@ -71,7 +76,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            ORIGIN_IMAGE_NAME=${{ inputs.base_image }}
             FINAL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha
 
   create-manifest:
     name: Create and push multi-platform manifests
