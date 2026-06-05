@@ -1,0 +1,121 @@
+name: Build and Push Docker images
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+    inputs:
+      base_image:
+        description: The Docker image on which the final image should be based on
+        default: termux/termux-packages
+        type: string
+  repository_dispatch:
+    event_types:
+      - build_images
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  DOCKER_USERNAME: ${{ github.actor }}
+  DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+  build-images:
+    name: Build image for ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+            arch: x86_64
+          - runner: ubuntu-24.04
+            platform: linux/386
+            arch: i386
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm/v7
+            arch: arm
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: aarch64
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Generate metadata for ${{ matrix.arch }} manifests
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: |
+            suffix=-${{ matrix.arch }},onlatest=true
+          tags: |
+            type=ref,event=pr
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ${{ matrix.arch }} image
+        uses: docker/build-push-action@v7
+        with:
+          context: "{{defaultContext}}:src"
+          push: true
+          platforms: ${{ matrix.platform }}
+          provenance: false # To allow usage with docker manifest create
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ORIGIN_IMAGE_NAME=${{ inputs.base_image }}
+            FINAL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha
+
+  create-manifest:
+    name: Create and push multi-platform manifests
+    needs: build-images
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-slim
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Generate metadata for multi-platform manifests
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create and push multi-platform manifests
+        run: |
+          IFS="," read -ra tags <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${tags[@]}"; do
+            docker manifest create \
+              "${tag}" \
+              "${tag}-x86_64" \
+              "${tag}-i386" \
+              "${tag}-arm" \
+              "${tag}-aarch64"
+            docker manifest push "${tag}"
+          done
