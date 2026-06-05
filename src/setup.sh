@@ -23,11 +23,13 @@ sed --in-place \
 	--expression="s/%ACTUAL_IMAGE_NAME%/$2/g" \
 	"$HOME/.termux/motd.sh"
 
-if [ -z "$(find /source -mindepth 1 -print0 -quit)" ]; then
-	git clone --depth=1 'https://github.com/termux/termux-packages.git' '/source'
-else
-	git -C '/source' pull
-fi
-
 cd '/source'
+
+if [ -z "$(find /source -mindepth 1 -print0 -quit)" ]; then
+	git init
+	git remote add origin 'https://github.com/termux/termux-packages.git'
+fi
+git fetch --depth=1 origin master
+git reset --hard origin/master
+
 './scripts/setup-termux.sh'
